@@ -92,6 +92,20 @@ class EHRContract extends Contract {
       await ctx.stub.putState(newEHR.ehrId, Buffer.from(JSON.stringify(newEHR)));
       console.log(newEHR);
 
+      // let patientAsBytes = await ctx.stub.getState(patient1.patientId);
+      // let patient = JSON.parse(patientAsBytes);
+      // let appointments = patient.appointments;
+      // let index = appointments.indexOf(appointment.appointmentId);
+      // if (index > -1) {
+      //    appointments.splice(index, 1);
+      //    patient.appointments = appointments;
+      // }
+      // let ehrs = patient.ehrs;
+      // ehrs.push(newEHR.ehrId);
+      // patient.ehrs = ehrs;
+      // await ctx.stub.putState(patient.patientId, Buffer.from(JSON.stringify(patient)));
+
+
       //create a insurer
       let insurer = {};
       insurer.name = 'nameInsurer';
@@ -139,6 +153,9 @@ class EHRContract extends Contract {
          }
          const buffer1 = Buffer.from(JSON.stringify(newPatient));
          await ctx.stub.putState(newPatient.patientId, buffer1);
+        
+         let response = `Patient with username ${args.userName} is updated in the world state`;
+         return response;
       }
       else {
          throw new Error(`Patient with username ${args.userName} already exists`);
@@ -214,18 +231,18 @@ class EHRContract extends Contract {
 
 
 
-   async giveaccess(ctx, patientId, requesterId) {
+   async giveAccess(ctx, args) {
       args = await JSON.parse(args);
-      let requesterExists = await this.assetExists(ctx, requesterId);
-      let patientExists = await this.assetExists(ctx, patientId);
+      let requesterExists = await this.assetExists(ctx, args.requesterId);
+      let patientExists = await this.assetExists(ctx, args.patientId);
       if (patientExists && requesterExists) {
-         let patientAsBytes = await ctx.stub.getState(patientId);
+         let patientAsBytes = await ctx.stub.getState(args.patientId);
          let patient = JSON.parse(patientAsBytes);
 
-         patient.access.push(requesterId)
-         patient.totalaccessedIds.push(requesterId)
+         patient.access.push(args.requesterId)
+         patient.totalaccessedIds.push(args.requesterId)
          await ctx.stub.putState(patient.patientId, Buffer.from(JSON.stringify(patient)));
-         let response = `Access has been provided to the requester with the id ${patientId}`;
+         let response = `Access has been provided to the requester with the id ${args.patientId}`;
          return response;
 
       } else {
@@ -339,9 +356,6 @@ class EHRContract extends Contract {
 
 
 
-
-
-
    async createInsurance(ctx, args) {
       args = await JSON.parse(args);
       let insurerExists = await this.assetExists(ctx, args.registrationId);
@@ -358,105 +372,394 @@ class EHRContract extends Contract {
       } else {
          throw new Error(`Insurer with id ${args.registrationId} already exists`);
       }
-
    }
 
-
-
-
-
-   async createDoctor(ctx, args) {
-      args = await JSON.parse(args);
-      let hospitalExists = await this.assetExists(ctx, args.hospitalId);
-      let doctorExists = await this.assetExists(ctx, args.medicalRegistrationNo);
-      if (hospitalExists && !doctorExists) {
-         //initialise empty patient requests and patients
-         let patients = [];
-         let appointments = [];
-         let patientsAttended = [];
-
-         let newDoctor = await new Doctor(args.firstName, args.lastName, args.address, args.aadhaar, args.medicalRegistrationNo, args.DOB, args.gender, args.userName, args.password, args.specialisation, args.phone);
-
-         //assign the doctor a hospital and update the info in the hospital's global state
-         newDoctor.currentHospital = args.hospitalId;
-
-         newDoctor.patients = patients;
-         newDoctor.appointments = appointments;
-         newDoctor.patientsAttended = patientsAttended;
-
-         //update the doctor in the hospital database
-         let hospitalAsBytes = await ctx.stub.getState(args.hospitalId);
-         let hospital = JSON.parse(hospitalAsBytes);
-         let doctors = hospital.doctors;
-         doctors.push(newDoctor.medicalRegistrationNo);
-         hospital.doctors = doctors;
-         await ctx.stub.putState(hospital.registrationId, Buffer.from(JSON.stringify(hospital)));
-
-         //put the doctor in the global state
-         await ctx.stub.putState(newDoctor.medicalRegistrationNo, Buffer.from(JSON.stringify(newDoctor)));
-
-         let response = `Doctor with medicalRegistrationNo ${newDoctor.medicalRegistrationNo} is updated in the world state`;
-         return response;
-
-      } else {
-         throw new Error(`There is no such hospital with id ${args.hospitalId} or a doctor with id ${args.medicalRegistrationNo} already exists`);
-      }
-
-   }
 
 
    async createAppointment(ctx, args) {
       args = await JSON.parse(args);
-
-      //check whether both the hospital and the patient already exists or not
       let doctorExists = await this.assetExists(ctx, args.DoctorId);
       let patientExists = await this.assetExists(ctx, args.patientId);
 
       if (doctorExists && patientExists) {
-         let newAppointment = await new Appointment(args.appointmentId, args.hospitalId, args.patientId, args.description, args.time);
-
-         //update the appointment in the world state of the hospital appointments
+         let newAppointment = await new Appointment(args.appointmentId, args.doctorId, args.patientId, args.description, args.time);
+         
          let doctorAsBytes = await ctx.stub.getState(args.DoctorId);
          let doctor = await JSON.parse(doctorAsBytes);
-         let patientAsBytes = await ctx.stub.getState(args.patientId);
-         let patient = await JSON.parse(patientAsBytes);
-
-         //update the appointment in the hospital global state
          let appointments = doctor.appointments;
          appointments.push(newAppointment.appointmentId);
-         patient.appointments = appointments;
-         let index = patient.appointments.indexOf(args.patientId);
-         if (index < 0) {
-            doctor.appointments.push(args.patientId);
-         }
+         doctor.appointments = appointments;
          await ctx.stub.putState(doctor.medicalRegistrationNo, Buffer.from(JSON.stringify(doctor)));
 
-         //update the appointment in the patient global state
-         appointments = patient.appointments;
-         appointments.push(newAppointment.appointmentId);
-         patient.appointments = appointments;
-         await ctx.stub.putState(patient.userName, Buffer.from(JSON.stringify(patient)));
-
+         
+         let patientAsBytes = await ctx.stub.getState(args.patientId);
+         let patient = await JSON.parse(patientAsBytes);
+         let patientappointments = patient.appointments;
+         patientappointments.push(newAppointment.appointmentId);
+         patient.appointments = patientappointments;
+         await ctx.stub.putState(patient.patientId, Buffer.from(JSON.stringify(patient)));
          await ctx.stub.putState(newAppointment.appointmentId, Buffer.from(JSON.stringify(newAppointment)));
-
          let response = `Appointment with the appointmentId ${newAppointment.appointmentId} is updated in the global state`;
          return response;
 
       } else {
-         throw new Error(`Either the hospital id ${args.hospitalId} or the patient Id ${args.userName}is not correct`)
+         throw new Error(`Either the Doctor id  or the patient Id ${args.userName}is not correct`)
       }
    }
 
 
 
+   async requestAccess(ctx, args) {
+      args = await JSON.parse(args);
+      let requesterExists = await this.assetExists(ctx, args.requesterId);
+      let patientExists = await this.assetExists(ctx, args.patientId);
+      if (requesterExists && patientExists) {
+
+          //get the patient and update the request for that patient
+          let patientAsBytes = await ctx.stub.getState(args.patientId);
+          let patient = JSON.parse(patientAsBytes);
+          let accessRequest = patient.accessRequest;
+          let index = accessRequest.indexOf(args.requesterId);
+          if (index < 0) {
+            accessRequest.push(args.requesterId);
+          }
+          patient.accessRequest = accessRequest;
+
+          await ctx.stub.putState(patient.patientId, Buffer.from(JSON.stringify(patient)));
+
+          let response = `the request to access the documents has been submitted with the patient`;
+          return response;
+      } else {
+          throw new Error(`this requester with id ${args.requesterId} or the patient with id ${args.patientId} doesn't exist`);
+      }
+  }
+
+
+  async grantAccess(ctx, args) {
+      args = await JSON.parse(args);
+      let patientExists = await this.assetExists(ctx, args.patientId);
+      let requesterExists = await this.assetExists(ctx, args.requesterId);
+      if (patientExists && requesterExists) {
+          let patientAsBytes = await ctx.stub.getState(args.patientId);
+          let patient = JSON.parse(patientAsBytes);
+          let accessRequest = patient.accessRequest;
+          let index = accessRequest.indexOf(args.requesterId);
+          if (index > -1) {
+              accessRequest.splice(index, 1);
+              patient.accessRequest = accessRequest;
+              let accessGrant = patient.accessGrant;
+              accessGrant[args.requesterId] = args.documentIds;
+              patient.accessGrant = accessGrant;
+              await ctx.stub.putState(patient.patientId, Buffer.from(JSON.stringify(patient)));
+
+              let requesterAsBytes = await ctx.stub.getState(args.requesterId);
+              let requester = JSON.parse(requesterAsBytes);
+              let patients = requester.patients;
+              index = patients.indexOf(args.patientId);
+              if (index < 0) {
+                  patients.push(args.patientId);
+              }
+              requester.patients = patients;
+              await ctx.stub.putState(args.requesterId, Buffer.from(JSON.stringify(requester)));
+
+              let response = `Access has been provided to the requester with the id ${args.requesterId}`;
+              return response;
+          } else {
+              throw new Error(`No such requester with id ${args.requesterId}`);
+          }
+      } else {
+          throw new Error(`patient with id ${args.patientId} or requester with id ${args.requesterId} doesn't exists`);
+      }
+  }
 
 
 
-   async readData(ctx, key) {
-      var response = await ctx.stub.getState(key);
-      console.log(response.toString());
-      return response.toString()
-   }
+
+ 
+  async grantDirectAccess(ctx, args) {
+      args = await JSON.parse(args);
+      let patientExists = await this.assetExists(ctx, args.patientId);
+      let requesterExists = await this.assetExists(ctx, args.requesterId);
+      if (patientExists && requesterExists) {
+          let patientAsBytes = await ctx.stub.getState(args.patientId);
+          let patient = JSON.parse(patientAsBytes);
+
+          let accessGrant = patient.accessGrant;
+          accessGrant[args.requesterId] = args.documentIds;
+          patient.accessGrant = accessGrant;
+          await ctx.stub.putState(patient.patientId, Buffer.from(JSON.stringify(patient)));
+
+          let requesterAsBytes = await ctx.stub.getState(args.requesterId);
+          let requester = JSON.parse(requesterAsBytes);
+          let patients = requester.patients;
+          let index = patients.indexOf(args.patientId);
+          if (index < 0) {
+              patients.push(args.patientId);
+          }
+          requester.patients = patients;
+          await ctx.stub.putState(args.requesterId, Buffer.from(JSON.stringify(requester)));
+
+          return `Access has been provided to the requester with the id ${args.requesterId}`;
+      } else {
+          throw new Error(`patient with id ${args.patientId} or requester with id ${args.requesterId} doesn't exists`);
+      }
+  }
+
+
+  async revokeAccess(ctx, args) {
+      args = await JSON.parse(args);
+      let patientExists = await this.assetExists(ctx, args.patientId);
+      let requesterExists = await this.assetExists(ctx, args.requesterId);
+      if (patientExists && requesterExists) {
+          let patientAsBytes = await ctx.stub.getState(args.patientId);
+          let patient = JSON.parse(patientAsBytes);
+          let accessGrant = patient.accessGrant;
+
+          if (args.requesterId in accessGrant) {
+              delete accessGrant[args.requesterId];
+              patient.accessGrant = accessGrant;
+              await ctx.stub.putState(patient.patientId, Buffer.from(JSON.stringify(patient)));
+
+              let requesterAsBytes = await ctx.stub.getState(args.requesterId);
+              let requester = JSON.parse(requesterAsBytes);
+              let patients = requester.patients;
+              let index = patients.indexOf(args.patientId);
+              if (index > -1) {
+                  patients.splice(index, 1);
+                  requester.patients = patients;
+                  await ctx.stub.putState(args.requesterId, Buffer.from(JSON.stringify(requester)));
+              }
+
+              let response = `Access has been revoked for the requester with the id ${args.requesterId}`;
+              return response;
+          } else {
+              throw new Error(`No such Permissioned id with id ${args.requesterId}`);
+          }
+      } else {
+          throw new Error(`patient with id ${args.patientId} or requester with id ${args.requesterId} doesn't exists`);
+      }
+  }
+
+
+  async modifyAssetInfo(ctx, args) {
+      let assetAsBytes = await ctx.stub.getState(args.assetId);
+      let asset = JSON.parse(assetAsBytes);
+      if (asset.type === 'Patient') {
+          delete asset.password;
+          delete asset.appointments;
+          delete asset.permissionedIds;
+          delete asset.requesters;
+          delete asset.ehrs;
+          delete asset.bills;
+      } else if (asset.type === 'Doctor') {
+          delete asset.password;
+          delete asset.patients;
+          delete asset.appointments;
+          delete asset.patientsAttended;
+      }   else if (asset.type === 'Insurance') {
+          delete asset.password;
+          delete asset.patients;
+      } else if (asset.type === 'Hospital') {
+          delete asset.password;
+          delete asset.patients;
+      }
+      delete asset.aadhaar;
+      return asset;
+  }
+
+
+
+  
+async readHospitalAssets(ctx, args) {
+      args = await JSON.parse(args);
+      let hospitalExists = await this.assetExists(ctx, args.hospitalId);
+      if (hospitalExists) {
+          let hospitalAsBytes = await ctx.stub.getState(args.hospitalId);
+          let hospital = JSON.parse(hospitalAsBytes);
+
+          let assetExits = await this.assetExists(ctx, args.assetId);
+          if (assetExits) {
+              let index = -1;
+              if (args.listType === 'patients') {
+                  index = hospital.patients.indexOf(args.assetId);
+                  if (index > -1) {
+                      return await this.readDocuments(ctx, args.assetId, hospital.registrationId);
+                  }
+              } else {
+                  if (args.listType === 'patientsVisited') {
+                      index = hospital.patientsVisited.indexOf(args.assetId);
+                  } else if (args.listType === 'doctors') {
+                      index = hospital.doctors.indexOf(args.assetId);
+                  }  else if (args.listType === 'bills') {
+                      index = hospital.bills.indexOf(args.assetId);
+                  } else if (args.listType === 'appointments') {
+                      index = hospital.appointments.indexOf(args.assetId);
+                  }
+                  if (index > -1) {
+                      return await this.modifyAssetInfo(ctx, args);
+                  } else {
+                      throw new Error(`asset not found`); 
+                  }
+              }
+          } else {
+              throw new Error(`the asset ${args.assetId} is not part of the hospital list`);
+          }
+      }
+  }
+
+  
+
+ 
+  async readDoctorAssets(ctx, args) {
+      args = await JSON.parse(args);
+      let doctorExists = await this.assetExists(ctx, args.doctorId);
+      if (doctorExists) {
+          let doctorAsBytes = await ctx.stub.getState(args.doctorId);
+          let doctor = JSON.parse(doctorAsBytes);
+
+          let assetExits = await this.assetExists(ctx, args.assetId);
+          if (assetExits) {
+              let index = -1;
+              if (args.listType === 'patients') {
+                  index = doctor.patients.indexOf(args.assetId);
+                  if (index > -1) {
+                      return await this.readDocuments(ctx, args.assetId, doctor.medicalRegistrationNo);
+                  }
+              } else {
+                  if (args.listType === 'patientsAttended') {
+                      index = doctor.patientsAttended.indexOf(args.assetId);
+                  } else if (args.listType === 'appointments') {
+                      index = doctor.appointments.indexOf(args.assetId);
+                  }
+                  if (index > -1) {
+                      return await this.modifyAssetInfo(ctx, args);
+                  } else {
+                      throw new Error(`asset not found`);
+                  }
+              }
+          } else {
+              throw new Error(`asset with id ${args.assetId} doesn't exist for the doctor`);
+          }
+      }
+  }
+
+
+ 
+  async readPatientAssets(ctx, args) {
+      args = JSON.parse(args);
+      let patientExists = await this.assetExists(ctx, args.patientId);
+      if (patientExists) {
+          let patientAsBytes = await ctx.stub.getState(args.patientId);
+          let patient = JSON.parse(patientAsBytes);
+          let assetExists = await this.assetExists(ctx, args.assetId);
+          if (assetExists) {
+              let index = -1;
+              if (args.listType === 'ehrs') {
+                  index = patient.ehrs.indexOf(args.assetId);
+              } else if (args.listType === 'requesters') {
+                  index = patient.requesters.indexOf(args.assetId);
+              } else if (args.listType === 'bills') {
+                  index = patient.bills.indexOf(args.assetId);
+              } else if (args.listType === 'appointments') {
+                  index = patient.appointments.indexOf(args.assetId);
+              } else if (args.listType === 'accessGrant') {
+                  let documentIds = patient.permissionedIds[args.assetId] || [];
+                  if (documentIds && documentIds.length > 0) {
+                      return await this.modifyAssetInfo(ctx, args);
+                  }
+              }
+              if (index > -1) {
+                  return await this.modifyAssetInfo(ctx, args);
+              } else {
+                  throw new Error(`asset not found`);
+              }
+          }
+      } else {
+          throw new Error(`patient with ide ${args.patientId} doesn't exist`);
+      }
+  }
+
+
+  async readInsurerAssets(ctx, args) {
+      args = await JSON.parse(args);
+      let insurerExists = await this.assetExists(ctx, args.insurerId);
+      if (insurerExists) {
+          let insurerAsBytes = await ctx.stub.getState(args.insurerId);
+          let insurer = JSON.parse(insurerAsBytes);
+          let assetExists = await this.assetExists(ctx, args.assetId);
+          if (assetExists) {
+              let index = insurer.patients.indexOf(args.assetId);
+              if (index > -1) {
+                  return await this.readDocuments(ctx, args.assetId, insurer.registrationId);
+              } else {
+                  throw new Error(`asset not found`);
+              }
+          } else {
+              throw new Error(`asset ${args.assetId} doesn't exits`);
+          }
+      }
+  }
+
+
+  async readDocuments(ctx, assetId,requesterId) {
+      let patientAsBytes = await ctx.stub.getState(assetId);
+      let patient = JSON.parse(patientAsBytes);
+      let documentIds = patient.permissionedIds[requesterId];
+      let assets = [];
+      //push the patient info first and then the documents along with that
+      delete patient.password;
+      delete patient.appointments;
+      delete patient.accessGrant;
+      delete patient.accessRequest;
+      delete patient.ehrs;
+      delete patient.bills;
+      assets.push(patient);
+      for (let i = 0; i < documentIds.length; i++) {
+          let documentAsBytes = await ctx.stub.getState(documentIds[i]);
+          let document = JSON.parse(documentAsBytes);
+          assets.push(document);
+      }
+      return assets;
+  }
+
+
+  async getModifiedAsset(ctx, args) {
+      args = JSON.parse(args);
+      let assetExists = await this.assetExists(ctx, args.id);
+      if (assetExists) {
+          let assetAsBytes = await ctx.stub.getState(args.id);
+          let asset = JSON.parse(assetAsBytes);
+          delete asset.password;
+          return asset;
+      } else {
+          throw new Error(`the asset with id ${args.id} doesn't exist`);
+      }
+  }
+
+
+async verifyPassword(ctx, args) {
+      args = await JSON.parse(args);
+      let assetExists = await this.assetExists(ctx, args.id);
+      if (assetExists) {
+          let assetAsBytes = await ctx.stub.getState(args.id);
+          let asset = JSON.parse(assetAsBytes);
+          return asset.password === args.password;
+      } else {
+          throw new Error(`the id ${args.id} doesn't exist`);
+      }
+}
+
+async updateAsset(ctx, args) {
+      args = await JSON.parse(args);
+      const exists = await this.assetExists(ctx, args.id);
+      if (!exists) {
+          throw new Error(`The ehr ${args.id} does not exist`);
+      }
+      await ctx.stub.putState(args.id, Buffer.from(JSON.stringify(args)));
+  }
+
+
+
 
 }
 

@@ -14,7 +14,7 @@ class Patient{
             this.password = crypto.createHash('sha256').update(password).digest('hex');
             this.ehrs =[];
             this.accessRequest = [];
-            this.accessGrant = [];
+            this.accessGrant = {};
             this.appointments =[];
             this.bills =[];
         }
