@@ -547,7 +547,11 @@ class EHRContract extends Contract {
       if (asset.type === 'Patient') {
           delete asset.password;
           delete asset.appointments;
+<<<<<<< HEAD
           delete asset.accessGrant;
+=======
+          delete asset.permissionedIds;
+>>>>>>> d5d9e9dc0c0a33b25c02012d3ee673934944ff27
           delete asset.requesters;
           delete asset.ehrs;
           delete asset.bills;
@@ -567,6 +571,7 @@ class EHRContract extends Contract {
       return asset;
   }
 
+<<<<<<< HEAD
 async readAssets(ctx,args){
 
     let queryString = {
@@ -663,6 +668,9 @@ async queryWithQueryString(ctx, queryString) {
 //         }
 //     }
 // }
+=======
+
+>>>>>>> d5d9e9dc0c0a33b25c02012d3ee673934944ff27
 
   
 async readHospitalAssets(ctx, args) {
@@ -758,7 +766,11 @@ async readHospitalAssets(ctx, args) {
               } else if (args.listType === 'appointments') {
                   index = patient.appointments.indexOf(args.assetId);
               } else if (args.listType === 'accessGrant') {
+<<<<<<< HEAD
                   let documentIds = patient.accessGrant[args.assetId] || [];
+=======
+                  let documentIds = patient.permissionedIds[args.assetId] || [];
+>>>>>>> d5d9e9dc0c0a33b25c02012d3ee673934944ff27
                   if (documentIds && documentIds.length > 0) {
                       return await this.modifyAssetInfo(ctx, args);
                   }
@@ -774,6 +786,7 @@ async readHospitalAssets(ctx, args) {
       }
   }
 
+<<<<<<< HEAD
 async getDetails(ctx, args) {
     args = JSON.parse(args);
     let assetIdExist = await this.assetExists(ctx, args.assetId);
@@ -789,6 +802,8 @@ async getDetails(ctx, args) {
         throw new Error(`Asset with ID ${args.assetId} doesn't exist`);
     }
 }
+=======
+>>>>>>> d5d9e9dc0c0a33b25c02012d3ee673934944ff27
 
   async readInsurerAssets(ctx, args) {
       args = await JSON.parse(args);
@@ -814,7 +829,11 @@ async getDetails(ctx, args) {
   async readDocuments(ctx, assetId,requesterId) {
       let patientAsBytes = await ctx.stub.getState(assetId);
       let patient = JSON.parse(patientAsBytes);
+<<<<<<< HEAD
       let documentIds = patient.accessGrant[requesterId];
+=======
+      let documentIds = patient.permissionedIds[requesterId];
+>>>>>>> d5d9e9dc0c0a33b25c02012d3ee673934944ff27
       let assets = [];
       //push the patient info first and then the documents along with that
       delete patient.password;
