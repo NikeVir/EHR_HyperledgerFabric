@@ -547,11 +547,7 @@ class EHRContract extends Contract {
       if (asset.type === 'Patient') {
           delete asset.password;
           delete asset.appointments;
-<<<<<<< HEAD
-          delete asset.accessGrant;
-=======
           delete asset.permissionedIds;
->>>>>>> d5d9e9dc0c0a33b25c02012d3ee673934944ff27
           delete asset.requesters;
           delete asset.ehrs;
           delete asset.bills;
@@ -571,106 +567,7 @@ class EHRContract extends Contract {
       return asset;
   }
 
-<<<<<<< HEAD
-async readAssets(ctx,args){
 
-    let queryString = {
-        selector: {
-          type: args
-        }
-      };
-  
-      let queryResults = await this.queryWithQueryString(ctx, JSON.stringify(queryString));
-    // let assetsAsBytes = await ctx.stub.getState(args.type);
-    // const elements = await this.transform(queryResults);
-    let assets = JSON.parse(queryResults);
-
-    for (let i = 0; i < assets.length; i++) {
-        let asset = assets[i];
-        delete asset.password;
-        delete asset.appointments;
-        delete asset.accessGrant;
-        delete asset.accessRequest;
-        delete asset.ehrs;
-        delete asset.bills;
-    }
-    return assets;
-
-}
-
-
-async queryWithQueryString(ctx, queryString) {
-
-    console.log('query String');
-    console.log(JSON.stringify(queryString));
-
-    let resultsIterator = await ctx.stub.getQueryResult(queryString);
-
-    let allResults = [];
-
-    // eslint-disable-next-line no-constant-condition
-    while (true) {
-      let res = await resultsIterator.next();
-
-      if (res.value && res.value.value.toString()) {
-        let jsonRes = {};
-
-        console.log(res.value.value.toString('utf8'));
-
-        jsonRes.Key = res.value.key;
-
-        try {
-          jsonRes.Record = JSON.parse(res.value.value.toString('utf8'));
-        } catch (err) {
-          console.log(err);
-          jsonRes.Record = res.value.value.toString('utf8');
-        }
-
-        allResults.push(jsonRes);
-      }
-      if (res.done) {
-        console.log('end of data');
-        await resultsIterator.close();
-        console.info(allResults);
-        console.log(JSON.stringify(allResults));
-        return JSON.stringify(allResults);
-      }
-    }
-  }
-
-// async transform(result) {
-//     const results = [];
-
-//     if (result === undefined || result.iterator === undefined)
-//     {
-//         console.log(`victor estamos en el undefined`);
-//         return results
-//     }
-        
-
-//     for (;;) {
-//         const val = await result.iterator.next();
-//         console.log(`victor val es: ${val}`);
-//         if (val === undefined) return results;
-
-//         try {
-//             results.push(JSON.parse(val.value.value.toString('utf8')));
-//         } catch (err) {
-//             // if an error occurs, then return empty
-//             return results;
-//         } finally {
-//             // Check if iterator completed
-//             if (val.done) {
-//                 result.iterator.close();
-//                 // return results now
-//                 return results;
-//             }
-//         }
-//     }
-// }
-=======
-
->>>>>>> d5d9e9dc0c0a33b25c02012d3ee673934944ff27
 
   
 async readHospitalAssets(ctx, args) {
@@ -766,11 +663,7 @@ async readHospitalAssets(ctx, args) {
               } else if (args.listType === 'appointments') {
                   index = patient.appointments.indexOf(args.assetId);
               } else if (args.listType === 'accessGrant') {
-<<<<<<< HEAD
-                  let documentIds = patient.accessGrant[args.assetId] || [];
-=======
                   let documentIds = patient.permissionedIds[args.assetId] || [];
->>>>>>> d5d9e9dc0c0a33b25c02012d3ee673934944ff27
                   if (documentIds && documentIds.length > 0) {
                       return await this.modifyAssetInfo(ctx, args);
                   }
@@ -786,24 +679,6 @@ async readHospitalAssets(ctx, args) {
       }
   }
 
-<<<<<<< HEAD
-async getDetails(ctx, args) {
-    args = JSON.parse(args);
-    let assetIdExist = await this.assetExists(ctx, args.assetId);
-    if (assetIdExist) {
-        let assetAsBytes = await ctx.stub.getState(args.assetId);
-        let asset = JSON.parse(assetAsBytes);      
-        if (asset.password=== args.password) {
-                return asset;
-        } else {
-                throw new Error(`Password not Matched`);
-        }
-    } else {
-        throw new Error(`Asset with ID ${args.assetId} doesn't exist`);
-    }
-}
-=======
->>>>>>> d5d9e9dc0c0a33b25c02012d3ee673934944ff27
 
   async readInsurerAssets(ctx, args) {
       args = await JSON.parse(args);
@@ -829,11 +704,7 @@ async getDetails(ctx, args) {
   async readDocuments(ctx, assetId,requesterId) {
       let patientAsBytes = await ctx.stub.getState(assetId);
       let patient = JSON.parse(patientAsBytes);
-<<<<<<< HEAD
-      let documentIds = patient.accessGrant[requesterId];
-=======
       let documentIds = patient.permissionedIds[requesterId];
->>>>>>> d5d9e9dc0c0a33b25c02012d3ee673934944ff27
       let assets = [];
       //push the patient info first and then the documents along with that
       delete patient.password;

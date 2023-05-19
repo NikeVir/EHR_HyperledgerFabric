@@ -1,34 +1,13 @@
 'use strict';
 var express = require('express');
 var bodyParser = require('body-parser');
-<<<<<<< HEAD
-var cors = require('cors')
-=======
 
->>>>>>> d5d9e9dc0c0a33b25c02012d3ee673934944ff27
 
 var app = express();
 var urlencodedParser = bodyParser.urlencoded({ extended: true });
 app.use(bodyParser.json());
 const path = require('path');
 const fs = require('fs');
-<<<<<<< HEAD
-app.use(cors({
-    origin: '*'
-}));
-app.use(function (req, res, next) {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-    res.setHeader('Access-Control-Allow-Credentials', true);
-    next();
-    });
-app.set("view engine","pug");
-
-const { FileSystemWallet, Gateway, X509WalletMixin } = require('fabric-network');
-
-app.post('/api/createUser', async function (req, res)  {
-=======
 
 app.set("view engine","pug");
 app.get('/',(req,res)=>{
@@ -45,7 +24,6 @@ app.get('/api/createcar', function (req, res) {
 const { FileSystemWallet, Gateway, X509WalletMixin } = require('fabric-network');
 
 app.get('/api/createUser', async function (req, res)  {
->>>>>>> d5d9e9dc0c0a33b25c02012d3ee673934944ff27
     try {
         console.log(req.body)
         const path = require('path');
@@ -112,11 +90,6 @@ app.get('/api/createUser', async function (req, res)  {
 
 app.get('/api/createEhr', async function (req, res) {
     try {
-<<<<<<< HEAD
-        console.log(req.body)
-
-=======
->>>>>>> d5d9e9dc0c0a33b25c02012d3ee673934944ff27
         const path = require('path');
         const ccpPath = path.resolve(__dirname, '..', '..', 'first-network', 'connection-org1.json');
         const ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
@@ -135,25 +108,15 @@ app.get('/api/createEhr', async function (req, res) {
         const network = await newgateway.getNetwork('mychannel');
         const contract = network.getContract('fabcar');
         var object = {
-<<<<<<< HEAD
-                ehrId:req.body.ehrId,
-=======
                 ehrId:req.body.firstName,
->>>>>>> d5d9e9dc0c0a33b25c02012d3ee673934944ff27
                 patientId:req.body.patientId,
                 doctorId:req.body.doctorId,
                 record:req.body.record,
                 appointmentId:req.body.appointmentId,
-<<<<<<< HEAD
-                time:req.body.time
-            }
-        const result   = await contract.submitTransaction('CreateEhr',JSON.stringify(object));
-=======
                 gender:req.body.gender,
                 time:req.body.time
             }
         const result   = await contract.submitTransaction('RegisterUser',JSON.stringify(object));
->>>>>>> d5d9e9dc0c0a33b25c02012d3ee673934944ff27
         console.log(`Transaction has been evaluated, result is: ${result.toString()}`);
         res.send(result);
 } catch (error) {
@@ -471,11 +434,7 @@ app.get('/api/createInsurance', async function (req, res) {
             var object = {
                 id:req.body.id,
                 }
-<<<<<<< HEAD
-            const result   = await contract.submitTransaction('generateSBill',JSON.stringify(object));
-=======
             const result   = await contract.submitTransaction('generateBill',JSON.stringify(object));
->>>>>>> d5d9e9dc0c0a33b25c02012d3ee673934944ff27
             console.log(`Transaction has been evaluated, result is: ${result.toString()}`);
             res.status(200).json({response: result.toString()});
     } catch (error) {
@@ -546,10 +505,6 @@ app.get('/api/createInsurance', async function (req, res) {
             var object = {
                 requesterId:req.body.requesterId,
                 patientId:req.body.patientId,
-<<<<<<< HEAD
-                documentIds:req.body.documentIds
-=======
->>>>>>> d5d9e9dc0c0a33b25c02012d3ee673934944ff27
                 }
             const result   = await contract.submitTransaction('grantAccess',JSON.stringify(object));
             console.log(`Transaction has been evaluated, result is: ${result.toString()}`);
@@ -698,40 +653,6 @@ app.get('/api/createInsurance', async function (req, res) {
             process.exit(1);
         }
     });
-<<<<<<< HEAD
-    app.get('/api/readAssets', async function (req, res) {
-        try {
-            const path = require('path');
-            const ccpPath = path.resolve(__dirname, '..', '..', 'first-network', 'connection-org1.json');
-            const ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
-            
-            const walletPath = path.join(process.cwd(), 'wallet');
-            const wallet = new FileSystemWallet(walletPath);
-            const identity = await wallet.exists(req.body.userName);
-            if (!identity) {
-                console.log('An identity for the user "appUser1" does not exist in the wallet');
-                console.log('Run the registerUser.js application before retrying');
-                return;
-            }
-            
-            const newgateway = new Gateway();
-            await newgateway.connect(ccpPath, { wallet, identity: req.body.userName, discovery: { enabled: true, asLocalhost: true } });
-            const network = await newgateway.getNetwork('mychannel');
-            const contract = network.getContract('fabcar');
-            var object = {
-                type:req.body.type
-                }
-            const result   = await contract.submitTransaction('readAssets',"Doctor");
-            console.log(`Transaction has been evaluated, result is: ${result.toString()}`);
-            res.status(200).json({response: result.toString()});
-    } catch (error) {
-            console.error(`Failed to evaluate transaction: ${error}`);
-            res.status(500).json({error: error});
-            process.exit(1);
-        }
-    }); 
-=======
->>>>>>> d5d9e9dc0c0a33b25c02012d3ee673934944ff27
 
 
 
@@ -757,10 +678,6 @@ app.get('/api/createInsurance', async function (req, res) {
             var object = {
                 doctorId:req.body.doctorId,
                 assetId:req.body.assetId,
-<<<<<<< HEAD
-                listType:req.body.listType,
-=======
->>>>>>> d5d9e9dc0c0a33b25c02012d3ee673934944ff27
                 }
             const result   = await contract.submitTransaction('readDoctorAssets',JSON.stringify(object));
             console.log(`Transaction has been evaluated, result is: ${result.toString()}`);
@@ -771,45 +688,6 @@ app.get('/api/createInsurance', async function (req, res) {
             process.exit(1);
         }
     });    
-<<<<<<< HEAD
-
-    app.post('/api/readAssets', async function (req, res) {
-        try {
-            console.log(req.body)
-            const path = require('path');
-            const ccpPath = path.resolve(__dirname, '..', '..', 'first-network', 'connection-org1.json');
-            const ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
-            
-            const walletPath = path.join(process.cwd(), 'wallet');
-            const wallet = new FileSystemWallet(walletPath);
-            const identity = await wallet.exists(req.body.userName);
-            if (!identity) {
-                console.log('An identity for the user "appUser1" does not exist in the wallet');
-                console.log('Run the registerUser.js application before retrying');
-                return;
-            }
-            
-            const newgateway = new Gateway();
-            await newgateway.connect(ccpPath, { wallet, identity: req.body.userName, discovery: { enabled: true, asLocalhost: true } });
-            const network = await newgateway.getNetwork('mychannel');
-            const contract = network.getContract('fabcar');
-            var object = {
-                assetId:req.body.assetId,
-                password:req.body.password,
-                }
-            console.log(object);
-
-            const result   = await contract.submitTransaction('getDetails',JSON.stringify(object));
-            console.log(`Transaction has been evaluated, result is: ${result.toString()}`);
-            res.status(200).json({response: result.toString()});
-    } catch (error) {
-            console.error(`Failed to evaluate transaction: ${error}`);
-            res.status(500).json({error: error});
-            process.exit(1);
-        }
-    });
-=======
->>>>>>> d5d9e9dc0c0a33b25c02012d3ee673934944ff27
     
     
     app.get('/api/readPatientAssets', async function (req, res) {
@@ -835,10 +713,6 @@ app.get('/api/createInsurance', async function (req, res) {
                 assetId:req.body.assetId,
                 patientId:req.body.patientId,
                 }
-<<<<<<< HEAD
-            console.log(object);
-=======
->>>>>>> d5d9e9dc0c0a33b25c02012d3ee673934944ff27
             const result   = await contract.submitTransaction('readPatientAssets',JSON.stringify(object));
             console.log(`Transaction has been evaluated, result is: ${result.toString()}`);
             res.status(200).json({response: result.toString()});
@@ -886,9 +760,5 @@ app.get('/api/createInsurance', async function (req, res) {
         
 
 app.listen(8080,()=>{
-<<<<<<< HEAD
-    console.log("Running on Port 8080")
-=======
     console.log("Running on Port 8000")
->>>>>>> d5d9e9dc0c0a33b25c02012d3ee673934944ff27
 });
