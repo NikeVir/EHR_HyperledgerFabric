@@ -1,6 +1,5 @@
 'use strict'
-// const crypto = require('crypto');
-// crypto.createHash('sha256').update(password).digest('hex');
+const crypto = require('crypto');
 class Patient{
 
     constructor(patientId,firstName,lastName,mobNumber,email,DOB,gender,password){
@@ -12,7 +11,7 @@ class Patient{
             this.email = email;
             this.DOB = DOB;
             this.gender = gender;
-            this.password = password;
+            this.password = crypto.createHash('sha256').update(password).digest('hex');
             this.ehrs =[];
             this.accessRequest = [];
             this.accessGrant = {};
